@@ -1,0 +1,57 @@
+!pip install transformers
+!pip install torch
+!pip install tensorflow
+!pip install SpeechRecognition pyaudio
+## Run this first.
+!pip install transformers
+from transformers import pipeline
+
+# Internet is required for this
+# Voice to text
+# While integrating, take special care with the input and output variables.
+
+import speech_recognition as sr
+recognizer = sr.Recognizer()
+
+# Capture audio input
+with sr.Microphone() as source:
+    recognizer.adjust_for_ambient_noise(source)  
+    print("Listening for speech...")
+    audio = recognizer.listen(source) 
+
+# Speech to text conversion
+try:
+    print("Recognizing speech...")
+    text = recognizer.recognize_google(audio) 
+    print(f"Recognized: {text}")  
+except sr.UnknownValueError:
+    print("Sorry, I couldn't understand the audio.")
+except sr.RequestError as e:
+    print(f"Could not request results from Google Speech Recognition service; {e}")
+
+# Use transformers' question-answering pipeline
+qa_pipeline = pipeline("question-answering")
+
+# Sample healthcare-related context for chatbot
+context = """
+If you have a fever, it could be due to a viral infection, bacterial infection, or an inflammatory condition.
+For a headache, causes could include stress, dehydration, sinus issues, or a migraine.
+A common cold is caused by a virus and can lead to symptoms such as a runny nose, sore throat, and coughing.
+For sore throats, consider warm saltwater gargles, lozenges, or throat sprays. If symptoms persist, consult a doctor.
+If you're feeling short of breath, it could indicate asthma, pneumonia, or other respiratory conditions.
+Anxiety symptoms can include feelings of nervousness, restlessness, or rapid heartbeat.
+For abdominal pain, it could be a sign of a digestive issue like indigestion, ulcers, or food poisoning.
+A rash could be a symptom of an allergic reaction, infection, or a skin condition like eczema or psoriasis.
+For joint pain, common causes include arthritis, bursitis, or tendonitis.
+If you experience chest pain, it could be due to heartburn, muscle strain, or more serious issues like a heart attack.
+Always consult a healthcare professional if symptoms are severe or prolonged.
+"""
+
+# User's question is taken from speech-to-text output (text)
+questions = [text]
+
+# Answer the questions based on healthcare context
+for question in questions:
+    result = qa_pipeline(question=question, context=context)
+    print(f"Q: {question}")
+    print(f"A: {result['answer']}\n")
